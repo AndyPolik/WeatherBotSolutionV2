@@ -12,9 +12,9 @@ namespace WeatherBotSolutionV2.Services
         private readonly string _baseUrl = "https://api.openweathermap.org/data/2.5/weather";
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly TelegramBotClient _botClient;
-        private readonly UserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
 
-        public WeatherService(IHttpClientFactory httpClientFactory, TelegramBotClient botClient, UserRepository userRepository, IConfiguration configuration)
+        public WeatherService(IHttpClientFactory httpClientFactory, TelegramBotClient botClient, IUserRepository userRepository, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _botClient = botClient;
@@ -58,7 +58,7 @@ namespace WeatherBotSolutionV2.Services
                 return;
             }
 
-            var users = await _userRepository.GetAllUsers();
+            var users = await _userRepository.GetAllUsersAsync();
 
             if (users == null || !users.Any())
             {

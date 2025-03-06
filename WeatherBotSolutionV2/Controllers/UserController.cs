@@ -28,7 +28,7 @@ namespace WeatherBotSolutionV2.Controllers
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetUserHistory(int userId)
         {
-            var history = await _userRepository.GetUserWeatherHistory(userId);
+            var history = await _userRepository.GetUserWeatherHistoryAsync(userId);
             if (history == null || !history.Any())
             {
                 return NotFound($"No weather history found for user with ID {userId}");
@@ -44,8 +44,8 @@ namespace WeatherBotSolutionV2.Controllers
         {
             // Якщо є UserId, то отримуємо одного користувача, інакше всіх користувачів
             var users = request.UserId.HasValue
-                ? new[] { await _userRepository.GetUserById(request.UserId.Value) }
-                : await _userRepository.GetAllUsers();
+                ? new[] { await _userRepository.GetUserByIdAsync(request.UserId.Value) }
+                : await _userRepository.GetAllUsersAsync();
 
             if (users == null || !users.Any())
             {

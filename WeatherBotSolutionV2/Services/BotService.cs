@@ -17,7 +17,7 @@ namespace WeatherBotSolutionV2.Services
         private readonly TelegramBotClient _botClient;
         private readonly string _connectionString;
         private readonly string _apiKey;
-
+        
         public BotService(IConfiguration configuration)
         {
             string botToken = Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN") ?? "CHANGE_TO_YOUR_TOKEN";
@@ -48,6 +48,8 @@ namespace WeatherBotSolutionV2.Services
         private readonly TelegramBotClient _botClient;
         private readonly string _connectionString;
         private readonly string _apiKey;
+        private readonly string _baseUrl = "https://api.openweathermap.org/data/2.5/weather";
+
         private static Dictionary<long, string> UserCityInput = new();
 
         public UpdateHandler(TelegramBotClient botClient, string connectionString, string apiKey)
@@ -104,6 +106,7 @@ namespace WeatherBotSolutionV2.Services
                 case string text when text.StartsWith("/start"):
                     Console.WriteLine("Handling /start command.");
                     await ShowMenuAsync(message.Chat.Id, cancellationToken);
+                    
                     break;
 
                 case string text when text.StartsWith("/weather"):
@@ -120,7 +123,7 @@ namespace WeatherBotSolutionV2.Services
                     Console.WriteLine($"Unknown command: {message.Text}");
                     await botClient.SendTextMessageAsync(
                         message.Chat.Id,
-                        "Егей.... я таких команд ще не вивчив! 😅",
+                        "Егей.... я таких команд ще не вивчив, друже ! 😅",
                         cancellationToken: cancellationToken
                     );
                     await ShowMenuAsync(message.Chat.Id, cancellationToken);
@@ -232,7 +235,7 @@ namespace WeatherBotSolutionV2.Services
 
         public async Task<WeatherResponse> GetWeatherFromApiAsync(string city)
         {
-            var url = $"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={_apiKey}&units=metric";
+            var url = $"{_baseUrl}?q={city}&appid={_apiKey}&units=metric";
             Console.WriteLine($"Fetching weather from API for city: {city}");
 
             using (var client = new HttpClient())

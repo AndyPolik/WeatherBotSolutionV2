@@ -1,58 +1,47 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using WeatherBotSolutionV2.Data;
 using WeatherBotSolutionV2.Models;
 
-namespace WeatherBotSolutionV2.Data
+public class WeatherHistoryRepository : IWeatherHistoryRepository
 {
-    public class WeatherHistoryRepository
+    private readonly string _connectionString;
+
+    public WeatherHistoryRepository(string connectionString)
     {
-        private readonly string _connectionString;
+        _connectionString = connectionString;
+    }
 
-        public WeatherHistoryRepository(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-        public async Task<IEnumerable<WeatherHistory>> GetWeatherHistoryAsync(long userId)
-        {
-            try
-            {
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-                    var query = "SELECT * FROM WeatherHistory WHERE UserTelegramId = @UserTelegramId";
-                    return await connection.QueryAsync<WeatherHistory>(query, new { UserTelegramId = userId });
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error fetching weather history.", ex);
-            }
-        }
+    public async Task<IEnumerable<WeatherHistory>> GetWeatherHistoryAsync(long userId)
+    {
+        const string query = @"
+        SELECT Id, UserTelegramId, City, Temperature, WeatherDescription, RequestTime
+        FROM WeatherHistory
+        WHERE UserTelegramId = @UserTelegramId";
 
-        public async Task AddWeatherHistoryAsync(WeatherHistory weatherHistory)
+        using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        return await connection.QueryAsync<WeatherHistory>(query, new { UserTelegramId = userId });
+    }
+
+    public async Task AddWeatherHistoryAsync(WeatherHistory weatherHistory)
+    {
+        const string query = @"
+        INSERT INTO WeatherHistory (UserTelegramId, City, Temperature, WeatherDescription, RequestTime)
+        VALUES (@UserTelegramId, @City, @Temperature, @WeatherDescription, @RequestTime)";
+
+        using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var parameters = new
         {
-            try
-            {
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-                    var query = "INSERT INTO WeatherHistory (UserTelegramId, City, Temperature, WeatherDescription, RequestTime) " +
-                                "VALUES (@UserTelegramId, @City, @Temperature, @WeatherDescription, @RequestTime)";
-                    var parameters = new
-                    {
-                        weatherHistory.UserTelegramId,
-                        weatherHistory.City,
-                        weatherHistory.Temperature,
-                        weatherHistory.WeatherDescription,
-                        weatherHistory.RequestTime
-                    };
-                    await connection.ExecuteAsync(query, parameters);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error adding weather history.", ex);
-            }
-        }
+            weatherHistory.UserTelegramId,
+            weatherHistory.City,
+            weatherHistory.Temperature,
+            weatherHistory.WeatherDescription,
+            weatherHistory.RequestTime
+        };
+        await connection.ExecuteAsync(query, parameters);
     }
 }
